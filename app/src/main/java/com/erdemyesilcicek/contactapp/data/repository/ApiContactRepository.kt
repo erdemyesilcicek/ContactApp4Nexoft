@@ -29,12 +29,11 @@ class ApiContactRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ContactRepository {
     
-    // Local cache for contacts
     private val contactsCache = MutableStateFlow<List<Contact>>(emptyList())
     
     override fun getContacts(): Flow<List<Contact>> {
         return flow {
-            emit(contactsCache.value) // Emit cached data first
+            emit(contactsCache.value) 
             
             when (val result = fetchAllContacts()) {
                 is NetworkResult.Success -> {
@@ -42,11 +41,9 @@ class ApiContactRepository @Inject constructor(
                     emit(contactsCache.value)
                 }
                 is NetworkResult.Error -> {
-                    // Keep cached data, emit what we have
                     emit(contactsCache.value)
                 }
                 is NetworkResult.Loading -> {
-                    // Do nothing
                 }
             }
         }.flowOn(Dispatchers.IO)
@@ -67,23 +64,18 @@ class ApiContactRepository @Inject constructor(
     
     override fun getContactById(contactId: String): Flow<Contact?> {
         return flow {
-            // First check cache
             val cachedContact = contactsCache.value.find { it.id == contactId }
             emit(cachedContact)
             
-            // Then fetch from API
             when (val result = fetchContactById(contactId)) {
                 is NetworkResult.Success -> {
                     emit(result.data)
-                    // Update cache
                     updateCache(result.data)
                 }
                 is NetworkResult.Error -> {
-                    // Keep cached data
                     emit(cachedContact)
                 }
                 is NetworkResult.Loading -> {
-                    // Do nothing
                 }
             }
         }.flowOn(Dispatchers.IO)
@@ -93,7 +85,6 @@ class ApiContactRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             val result = createContact(contact)
             if (result is NetworkResult.Success) {
-                // Add to cache
                 contactsCache.value = contactsCache.value + result.data
             }
         }
@@ -103,7 +94,6 @@ class ApiContactRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             val result = removeContact(contactId)
             if (result is NetworkResult.Success) {
-                // Remove from cache
                 contactsCache.value = contactsCache.value.filter { it.id != contactId }
             }
         }
@@ -113,16 +103,13 @@ class ApiContactRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             val result = modifyContact(contact)
             if (result is NetworkResult.Success) {
-                // Update cache
                 contactsCache.value = contactsCache.value.map { 
                     if (it.id == contact.id) result.data else it 
                 }
             }
         }
     }
-    
-    // New methods for API operations that return NetworkResult
-    
+        
     suspend fun fetchAllContacts(): NetworkResult<List<Contact>> {
         return withContext(Dispatchers.IO) {
             try {
@@ -280,7 +267,6 @@ class ApiContactRepository @Inject constructor(
         contactsCache.value = currentList
     }
     
-    // Force refresh contacts from API
     suspend fun refreshContacts(): NetworkResult<List<Contact>> {
         return fetchAllContacts().also { result ->
             if (result is NetworkResult.Success) {

@@ -32,7 +32,6 @@ fun EmptyContactsState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Gray circle with person outline icon
         Icon(
             imageVector = Icons.Outlined.Person,
             contentDescription = null,

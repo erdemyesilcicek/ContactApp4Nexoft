@@ -62,7 +62,6 @@ fun DeleteConfirmationBottomSheet(
                 .padding(bottom = dimens.paddingLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Handle bar
             Spacer(modifier = Modifier.height(12.dp))
             
             Box(
@@ -75,7 +74,6 @@ fun DeleteConfirmationBottomSheet(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Title
             Text(
                 text = AppStrings.DELETE_CONTACT,
                 fontSize = dimens.fontSizeXLarge,
@@ -86,7 +84,6 @@ fun DeleteConfirmationBottomSheet(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            // Message
             Text(
                 text = AppStrings.DELETE_CONFIRMATION_MESSAGE,
                 fontSize = dimens.fontSizeMedium,
@@ -97,11 +94,9 @@ fun DeleteConfirmationBottomSheet(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Buttons
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // No button (Cancel)
                 OutlinedButton(
                     onClick = onDismiss,
                     modifier = Modifier
@@ -121,7 +116,6 @@ fun DeleteConfirmationBottomSheet(
                 
                 Spacer(modifier = Modifier.width(12.dp))
                 
-                // Yes button (Confirm delete)
                 Button(
                     onClick = onConfirm,
                     modifier = Modifier

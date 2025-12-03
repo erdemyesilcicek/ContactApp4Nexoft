@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.AddCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,11 +44,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.erdemyesilcicek.contactapp.constants.AppColors
 import com.erdemyesilcicek.contactapp.constants.AppStrings
-import com.erdemyesilcicek.contactapp.presentation.components.AddContactBottomSheet
-import com.erdemyesilcicek.contactapp.presentation.components.ContactDetailBottomSheet
+import com.erdemyesilcicek.contactapp.presentation.screens.addcontact.AddContactBottomSheet
+import com.erdemyesilcicek.contactapp.presentation.screens.contactdetail.ContactDetailBottomSheet
 import com.erdemyesilcicek.contactapp.presentation.components.ContactListItem
 import com.erdemyesilcicek.contactapp.presentation.components.ContactSectionHeader
-import com.erdemyesilcicek.contactapp.presentation.components.EditContactBottomSheet
+import com.erdemyesilcicek.contactapp.presentation.screens.editcontact.EditContactBottomSheet
 import com.erdemyesilcicek.contactapp.presentation.components.EmptyContactsState
 import com.erdemyesilcicek.contactapp.presentation.components.SearchBar
 import com.erdemyesilcicek.contactapp.util.AppDimens
@@ -66,6 +65,7 @@ fun ContactListScreen(
     viewModel: ContactListViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val searchHistory by viewModel.searchHistory.collectAsState()
     val dimens = AppDimens.current
     val snackbarHostState = remember { SnackbarHostState() }
     
@@ -235,6 +235,14 @@ fun ContactListScreen(
             SearchBar(
                 query = state.searchQuery,
                 onQueryChange = viewModel::onSearchQueryChange,
+                searchHistory = searchHistory,
+                onHistoryItemClick = { query ->
+                    viewModel.onSearchQueryChange(query)
+                    viewModel.addToSearchHistory(query)
+                },
+                onRemoveHistoryItem = viewModel::removeFromSearchHistory,
+                onClearHistory = viewModel::clearSearchHistory,
+                onSearch = viewModel::addToSearchHistory,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = dimens.screenHorizontalPadding)

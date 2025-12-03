@@ -30,23 +30,21 @@ import com.erdemyesilcicek.contactapp.R
 import com.erdemyesilcicek.contactapp.constants.AppColors
 import com.erdemyesilcicek.contactapp.util.AppDimens
 
-// Avatar renk paleti - iOS tarzı pastel renkler
 private val avatarColors = listOf(
-    Color(0xFFE3F2FD) to Color(0xFF1976D2), // Açık mavi arka plan, koyu mavi yazı
-    Color(0xFFFCE4EC) to Color(0xFFC2185B), // Açık pembe arka plan, koyu pembe yazı
-    Color(0xFFE8F5E9) to Color(0xFF388E3C), // Açık yeşil arka plan, koyu yeşil yazı
-    Color(0xFFFFF3E0) to Color(0xFFE65100), // Açık turuncu arka plan, koyu turuncu yazı
-    Color(0xFFF3E5F5) to Color(0xFF7B1FA2), // Açık mor arka plan, koyu mor yazı
-    Color(0xFFE0F7FA) to Color(0xFF00838F), // Açık cyan arka plan, koyu cyan yazı
-    Color(0xFFFFFDE7) to Color(0xFFF9A825), // Açık sarı arka plan, koyu sarı yazı
-    Color(0xFFEFEBE9) to Color(0xFF5D4037), // Açık kahve arka plan, koyu kahve yazı
+    Color(0xFFE3F2FD) to Color(0xFF1976D2), 
+    Color(0xFFFCE4EC) to Color(0xFFC2185B), 
+    Color(0xFFE8F5E9) to Color(0xFF388E3C), 
+    Color(0xFFFFF3E0) to Color(0xFFE65100), 
+    Color(0xFFF3E5F5) to Color(0xFF7B1FA2), 
+    Color(0xFFE0F7FA) to Color(0xFF00838F), 
+    Color(0xFFFFFDE7) to Color(0xFFF9A825), 
+    Color(0xFFEFEBE9) to Color(0xFF5D4037), 
 )
 
-// Fotoğraflı avatarlar için border renk paleti
 private val photoBorderColors = listOf(
-    Color(0xFFFFB6C1), // Açık pembe
-    Color(0xFFDDA0DD), // Mor-pembe
-    Color(0xFFB0C4DE), // Açık mavi-gri
+    Color(0xFFFFB6C1), 
+    Color(0xFFDDA0DD), 
+    Color(0xFFB0C4DE), 
 )
 
 private fun getAvatarColors(initials: String): Pair<Color, Color> {
@@ -131,7 +129,6 @@ fun ContactAvatar(
             }
         }
         
-        // Device contacts badge - sağ alt köşe
         if (isInDeviceContacts) {
             val badgeSize = avatarSize * 0.4f
             Image(

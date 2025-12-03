@@ -24,7 +24,6 @@ fun AppNavigation(
         startDestination = Routes.ContactList.route
     ) {
         composable(route = Routes.ContactList.route) {
-            // If we need to show success screen after adding contact
             if (showAddSuccess) {
                 SuccessScreen(
                     onNavigateToContactList = {

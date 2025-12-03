@@ -3,10 +3,6 @@ package com.erdemyesilcicek.contactapp.data.remote.dto
 import android.net.Uri
 import com.erdemyesilcicek.contactapp.data.model.Contact
 
-/**
- * Extension functions for mapping between DTOs and domain models
- */
-
 fun UserDto.toContact(): Contact {
     return Contact(
         id = id,

@@ -1,4 +1,4 @@
-package com.erdemyesilcicek.contactapp.presentation.screens.editcontact
+package com.erdemyesilcicek.contactapp.presentation.screens.addcontact
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -6,70 +6,28 @@ import androidx.lifecycle.viewModelScope
 import com.erdemyesilcicek.contactapp.data.model.Contact
 import com.erdemyesilcicek.contactapp.data.repository.ApiContactRepository
 import com.erdemyesilcicek.contactapp.util.NetworkResult
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import com.erdemyesilcicek.contactapp.util.ValidationUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-@HiltViewModel(assistedFactory = EditContactViewModel.Factory::class)
-class EditContactViewModel @AssistedInject constructor(
-    private val repository: ApiContactRepository,
-    @Assisted private val contactId: String
+@HiltViewModel
+class AddContactViewModel @Inject constructor(
+    private val repository: ApiContactRepository
 ) : ViewModel() {
     
-    private val _state = MutableStateFlow(EditContactState())
-    val state: StateFlow<EditContactState> = _state.asStateFlow()
-    
-    init {
-        loadContact()
-    }
-    
-    private fun loadContact() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
-            
-            when (val result = repository.fetchContactById(contactId)) {
-                is NetworkResult.Success -> {
-                    val contact = result.data
-                    _state.update { state ->
-                        state.copy(
-                            contactId = contact.id,
-                            firstName = contact.firstName,
-                            lastName = contact.lastName,
-                            phoneNumber = contact.phoneNumber,
-                            photoUri = contact.photoUri,
-                            profileImageUrl = contact.photoUri?.toString(),
-                            isLoading = false,
-                            isValid = validateForm(contact.firstName, contact.lastName, contact.phoneNumber),
-                            error = null
-                        )
-                    }
-                }
-                is NetworkResult.Error -> {
-                    _state.update { state ->
-                        state.copy(
-                            isLoading = false,
-                            error = result.message
-                        )
-                    }
-                }
-                is NetworkResult.Loading -> {
-                    // Already handled
-                }
-            }
-        }
-    }
+    private val _state = MutableStateFlow(AddContactState())
+    val state: StateFlow<AddContactState> = _state.asStateFlow()
     
     fun onFirstNameChange(firstName: String) {
         _state.update { 
             it.copy(
                 firstName = firstName,
-                isValid = validateForm(firstName, it.lastName, it.phoneNumber),
+                isValid = ValidationUtils.validateContactForm(firstName, it.lastName, it.phoneNumber),
                 error = null
             )
         }
@@ -79,7 +37,7 @@ class EditContactViewModel @AssistedInject constructor(
         _state.update { 
             it.copy(
                 lastName = lastName,
-                isValid = validateForm(it.firstName, lastName, it.phoneNumber),
+                isValid = ValidationUtils.validateContactForm(it.firstName, lastName, it.phoneNumber),
                 error = null
             )
         }
@@ -89,7 +47,7 @@ class EditContactViewModel @AssistedInject constructor(
         _state.update { 
             it.copy(
                 phoneNumber = phoneNumber,
-                isValid = validateForm(it.firstName, it.lastName, phoneNumber),
+                isValid = ValidationUtils.validateContactForm(it.firstName, it.lastName, phoneNumber),
                 error = null
             )
         }
@@ -97,7 +55,6 @@ class EditContactViewModel @AssistedInject constructor(
     
     fun onPhotoSelected(uri: Uri?) {
         _state.update { it.copy(photoUri = uri, error = null) }
-        // Upload image when selected
         uri?.let { uploadImage(it) }
     }
     
@@ -123,7 +80,6 @@ class EditContactViewModel @AssistedInject constructor(
                     }
                 }
                 is NetworkResult.Loading -> {
-                    // Already handled
                 }
             }
         }
@@ -137,7 +93,7 @@ class EditContactViewModel @AssistedInject constructor(
         _state.update { it.copy(showPhotoPickerSheet = false) }
     }
     
-    fun updateContact() {
+    fun saveContact() {
         val currentState = _state.value
         if (!currentState.isValid) return
         
@@ -145,7 +101,6 @@ class EditContactViewModel @AssistedInject constructor(
             _state.update { it.copy(isSaving = true, error = null) }
             
             val contact = Contact(
-                id = currentState.contactId,
                 firstName = currentState.firstName.trim(),
                 lastName = currentState.lastName.trim(),
                 phoneNumber = currentState.phoneNumber.trim(),
@@ -153,7 +108,7 @@ class EditContactViewModel @AssistedInject constructor(
                     ?: currentState.photoUri
             )
             
-            when (val result = repository.modifyContact(contact)) {
+            when (val result = repository.createContact(contact)) {
                 is NetworkResult.Success -> {
                     _state.update { 
                         it.copy(
@@ -172,7 +127,6 @@ class EditContactViewModel @AssistedInject constructor(
                     }
                 }
                 is NetworkResult.Loading -> {
-                    // Already handled
                 }
             }
         }
@@ -182,20 +136,11 @@ class EditContactViewModel @AssistedInject constructor(
         _state.update { it.copy(isSaved = false) }
     }
     
+    fun resetState() {
+        _state.value = AddContactState()
+    }
+    
     fun clearError() {
         _state.update { it.copy(error = null) }
-    }
-    
-    fun retry() {
-        loadContact()
-    }
-    
-    private fun validateForm(firstName: String, lastName: String, phoneNumber: String): Boolean {
-        return firstName.isNotBlank() && phoneNumber.isNotBlank()
-    }
-    
-    @AssistedFactory
-    interface Factory {
-        fun create(contactId: String): EditContactViewModel
     }
 }

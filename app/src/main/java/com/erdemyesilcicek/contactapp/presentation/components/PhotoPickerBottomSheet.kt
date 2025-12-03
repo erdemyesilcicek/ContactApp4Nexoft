@@ -58,7 +58,6 @@ fun PhotoPickerBottomSheet(
                 .fillMaxWidth()
                 .padding(vertical = dimens.paddingMedium)
         ) {
-            // Camera Option
             BottomSheetItem(
                 icon = {
                     Icon(
@@ -81,7 +80,6 @@ fun PhotoPickerBottomSheet(
                 color = AppColors.BottomSheetDivider
             )
             
-            // Gallery Option
             BottomSheetItem(
                 icon = {
                     Icon(
@@ -100,7 +98,6 @@ fun PhotoPickerBottomSheet(
             
             Spacer(modifier = Modifier.height(dimens.paddingMedium))
             
-            // Cancel Button
             TextButton(
                 onClick = onDismiss,
                 modifier = Modifier

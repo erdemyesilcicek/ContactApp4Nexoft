@@ -1,9 +1,7 @@
-package com.erdemyesilcicek.contactapp.presentation.components
+package com.erdemyesilcicek.contactapp.presentation.screens.editcontact
 
 import android.Manifest
-import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -17,7 +15,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -25,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,23 +42,22 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.erdemyesilcicek.contactapp.constants.AppColors
 import com.erdemyesilcicek.contactapp.constants.AppStrings
-import com.erdemyesilcicek.contactapp.presentation.screens.editcontact.EditContactViewModel
+import com.erdemyesilcicek.contactapp.presentation.components.BottomSheetTopBar
+import com.erdemyesilcicek.contactapp.presentation.components.BottomSheetTopBarType
+import com.erdemyesilcicek.contactapp.presentation.components.ContactAvatar
+import com.erdemyesilcicek.contactapp.presentation.components.ContactTextField
+import com.erdemyesilcicek.contactapp.presentation.components.PhotoPickerBottomSheet
 import com.erdemyesilcicek.contactapp.util.AppDimens
+import com.erdemyesilcicek.contactapp.util.ImageUtils
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,16 +79,13 @@ fun EditContactBottomSheet(
         skipPartiallyExpanded = true
     )
     
-    // Animation states
     var isContentVisible by remember { mutableStateOf(false) }
     
-    // Trigger content animation after sheet appears
     LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(100)
+        delay(100)
         isContentVisible = true
     }
     
-    // Content scale animation
     val contentScale by animateFloatAsState(
         targetValue = if (isContentVisible) 1f else 0.95f,
         animationSpec = spring(
@@ -103,7 +95,6 @@ fun EditContactBottomSheet(
         label = "contentScale"
     )
     
-    // Content alpha animation
     val contentAlpha by animateFloatAsState(
         targetValue = if (isContentVisible) 1f else 0f,
         animationSpec = tween(durationMillis = 300),
@@ -112,7 +103,6 @@ fun EditContactBottomSheet(
     
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
     
-    // Camera launcher
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
@@ -123,7 +113,6 @@ fun EditContactBottomSheet(
         }
     }
     
-    // Gallery launcher
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -132,18 +121,16 @@ fun EditContactBottomSheet(
         }
     }
     
-    // Camera permission launcher
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            val uri = createImageUri(context)
+            val uri = ImageUtils.createImageUri(context)
             tempPhotoUri = uri
             uri?.let { cameraLauncher.launch(it) }
         }
     }
     
-    // Handle saved state
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) {
             onContactUpdated()
@@ -151,7 +138,6 @@ fun EditContactBottomSheet(
         }
     }
     
-    // Photo picker sheet
     if (state.showPhotoPickerSheet) {
         PhotoPickerBottomSheet(
             onDismiss = { viewModel.hidePhotoPicker() },
@@ -186,7 +172,6 @@ fun EditContactBottomSheet(
                     alpha = contentAlpha
                 }
         ) {
-            // Top Bar with animation
             AnimatedVisibility(
                 visible = isContentVisible,
                 enter = fadeIn(animationSpec = tween(300)) + 
@@ -199,11 +184,12 @@ fun EditContactBottomSheet(
                        ),
                 exit = fadeOut()
             ) {
-                EditContactTopBar(
+                BottomSheetTopBar(
+                    type = BottomSheetTopBarType.EDIT_CONTACT,
                     onCancel = {
                         scope.launch {
                             isContentVisible = false
-                            kotlinx.coroutines.delay(150)
+                            delay(150)
                             sheetState.hide()
                             onDismiss()
                         }
@@ -213,7 +199,6 @@ fun EditContactBottomSheet(
                 )
             }
             
-            // Content
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -248,7 +233,6 @@ fun EditContactBottomSheet(
                         ) {
                             Spacer(modifier = Modifier.height(dimens.paddingLarge))
 
-                            // Avatar Section
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
@@ -274,7 +258,6 @@ fun EditContactBottomSheet(
 
                             Spacer(modifier = Modifier.height(dimens.paddingLarge))
 
-                            // Form Fields
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -308,94 +291,5 @@ fun EditContactBottomSheet(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun EditContactTopBar(
-    onCancel: () -> Unit,
-    onDone: () -> Unit,
-    isDoneEnabled: Boolean
-) {
-    val dimens = AppDimens.current
-    
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(AppColors.Surface)
-    ) {
-        // Handle bar (iOS style)
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .width(36.dp)
-                .height(5.dp)
-                .clip(RoundedCornerShape(2.5.dp))
-                .background(AppColors.AvatarIconColor)
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        // Top bar with Cancel, Title, Done
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(44.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextButton(
-                onClick = onCancel,
-                modifier = Modifier.width(80.dp)
-            ) {
-                Text(
-                    text = AppStrings.CANCEL,
-                    fontSize = dimens.fontSizeLarge,
-                    fontWeight = FontWeight.Normal,
-                    color = AppColors.CancelText
-                )
-            }
-            
-            Text(
-                text = AppStrings.EDIT_CONTACT_TITLE,
-                fontSize = dimens.fontSizeLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = AppColors.TextPrimary,
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center
-            )
-            
-            TextButton(
-                onClick = onDone,
-                enabled = isDoneEnabled,
-                modifier = Modifier.width(80.dp)
-            ) {
-                Text(
-                    text = AppStrings.DONE,
-                    fontSize = dimens.fontSizeLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (isDoneEnabled) AppColors.DoneTextEnabled else AppColors.DoneTextDisabled
-                )
-            }
-        }
-    }
-}
-
-private fun createImageUri(context: Context): Uri? {
-    return try {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val imageFileName = "JPEG_${timeStamp}_"
-        val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
-        
-        FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            imageFile
-        )
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
     }
 }

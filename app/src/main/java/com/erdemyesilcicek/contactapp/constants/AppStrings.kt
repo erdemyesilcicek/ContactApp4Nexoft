@@ -48,4 +48,6 @@ object AppStrings {
     
     // Search
     const val NO_RESULTS = "No results found"
+    const val RECENT_SEARCHES = "Recent Searches"
+    const val CLEAR_HISTORY = "Clear"
 }

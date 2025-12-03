@@ -5,11 +5,15 @@ import androidx.lifecycle.viewModelScope
 import com.erdemyesilcicek.contactapp.data.model.Contact
 import com.erdemyesilcicek.contactapp.data.repository.ApiContactRepository
 import com.erdemyesilcicek.contactapp.data.repository.DeviceContactsRepository
+import com.erdemyesilcicek.contactapp.data.repository.SearchHistoryRepository
 import com.erdemyesilcicek.contactapp.util.NetworkResult
+import com.erdemyesilcicek.contactapp.util.PhoneUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,11 +21,19 @@ import javax.inject.Inject
 @HiltViewModel
 class ContactListViewModel @Inject constructor(
     private val repository: ApiContactRepository,
-    private val deviceContactsRepository: DeviceContactsRepository
+    private val deviceContactsRepository: DeviceContactsRepository,
+    private val searchHistoryRepository: SearchHistoryRepository
 ) : ViewModel() {
     
     private val _state = MutableStateFlow(ContactListState())
     val state: StateFlow<ContactListState> = _state.asStateFlow()
+    
+    val searchHistory: StateFlow<List<String>> = searchHistoryRepository.searchHistory
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
     
     init {
         loadContacts()
@@ -30,6 +42,24 @@ class ContactListViewModel @Inject constructor(
     fun onSearchQueryChange(query: String) {
         _state.update { it.copy(searchQuery = query) }
         searchContacts(query)
+    }
+    
+    fun addToSearchHistory(query: String) {
+        viewModelScope.launch {
+            searchHistoryRepository.addSearchQuery(query)
+        }
+    }
+    
+    fun removeFromSearchHistory(query: String) {
+        viewModelScope.launch {
+            searchHistoryRepository.removeSearchQuery(query)
+        }
+    }
+    
+    fun clearSearchHistory() {
+        viewModelScope.launch {
+            searchHistoryRepository.clearHistory()
+        }
     }
     
     private fun loadContacts() {
@@ -42,7 +72,7 @@ class ContactListViewModel @Inject constructor(
             repository.getContacts().collect { contacts ->
                 // Her contact için cihaz rehberinde olup olmadığını kontrol et
                 val contactsWithDeviceStatus = contacts.map { contact ->
-                    val normalizedPhone = contact.phoneNumber.filter { it.isDigit() || it == '+' }
+                    val normalizedPhone = PhoneUtils.normalizePhoneNumber(contact.phoneNumber)
                     contact.copy(isInDeviceContacts = devicePhoneNumbers.contains(normalizedPhone))
                 }
                 
@@ -68,7 +98,7 @@ class ContactListViewModel @Inject constructor(
                 is NetworkResult.Success -> {
                     // Her contact için cihaz rehberinde olup olmadığını kontrol et
                     val contactsWithDeviceStatus = result.data.map { contact ->
-                        val normalizedPhone = contact.phoneNumber.filter { it.isDigit() || it == '+' }
+                        val normalizedPhone = PhoneUtils.normalizePhoneNumber(contact.phoneNumber)
                         contact.copy(isInDeviceContacts = devicePhoneNumbers.contains(normalizedPhone))
                     }
                     
@@ -100,13 +130,13 @@ class ContactListViewModel @Inject constructor(
         viewModelScope.launch {
             // Mevcut cihaz rehberi durumlarını sakla
             val currentDeviceContactsMap = _state.value.contacts.associate { 
-                it.phoneNumber.filter { c -> c.isDigit() || c == '+' } to it.isInDeviceContacts 
+                PhoneUtils.normalizePhoneNumber(it.phoneNumber) to it.isInDeviceContacts 
             }
             
             repository.searchContacts(query).collect { contacts ->
                 // Arama sonuçlarına cihaz rehberi durumlarını ekle
                 val contactsWithDeviceStatus = contacts.map { contact ->
-                    val normalizedPhone = contact.phoneNumber.filter { it.isDigit() || it == '+' }
+                    val normalizedPhone = PhoneUtils.normalizePhoneNumber(contact.phoneNumber)
                     contact.copy(isInDeviceContacts = currentDeviceContactsMap[normalizedPhone] ?: false)
                 }
                 
@@ -133,7 +163,7 @@ class ContactListViewModel @Inject constructor(
             val devicePhoneNumbers = deviceContactsRepository.getAllDevicePhoneNumbers()
             
             val contactsWithDeviceStatus = _state.value.contacts.map { contact ->
-                val normalizedPhone = contact.phoneNumber.filter { it.isDigit() || it == '+' }
+                val normalizedPhone = PhoneUtils.normalizePhoneNumber(contact.phoneNumber)
                 contact.copy(isInDeviceContacts = devicePhoneNumbers.contains(normalizedPhone))
             }
             
