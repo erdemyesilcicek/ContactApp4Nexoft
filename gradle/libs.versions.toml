@@ -18,6 +18,7 @@ materialIconsExtended = "1.6.8"
 retrofit = "2.9.0"
 okhttp = "4.12.0"
 gson = "2.10.1"
+accompanistPermissions = "0.34.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,6 +55,8 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 # Gson
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+# Accompanist Permissions
+accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanistPermissions" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

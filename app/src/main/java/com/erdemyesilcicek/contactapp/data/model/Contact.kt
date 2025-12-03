@@ -8,7 +8,8 @@ data class Contact(
     val firstName: String,
     val lastName: String,
     val phoneNumber: String,
-    val photoUri: Uri? = null
+    val photoUri: Uri? = null,
+    val isInDeviceContacts: Boolean = false
 ) {
     val fullName: String
         get() = "$firstName $lastName".trim()

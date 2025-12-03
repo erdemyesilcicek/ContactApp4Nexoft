@@ -95,6 +95,9 @@ dependencies {
     // Gson
     implementation(libs.gson)
     
+    // Accompanist Permissions
+    implementation(libs.accompanist.permissions)
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

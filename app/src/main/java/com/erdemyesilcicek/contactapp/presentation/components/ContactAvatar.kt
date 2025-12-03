@@ -1,10 +1,12 @@
 package com.erdemyesilcicek.contactapp.presentation.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -19,10 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.erdemyesilcicek.contactapp.R
 import com.erdemyesilcicek.contactapp.constants.AppColors
 import com.erdemyesilcicek.contactapp.util.AppDimens
 
@@ -61,6 +65,7 @@ fun ContactAvatar(
     initials: String,
     size: Dp? = null,
     showPlaceholderIcon: Boolean = true,
+    isInDeviceContacts: Boolean = false,
     onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -72,52 +77,72 @@ fun ContactAvatar(
     val hasPhoto = !photoUri.isNullOrBlank()
     
     Box(
-        modifier = modifier
-            .size(avatarSize)
-            .then(
-                if (hasPhoto) {
-                    Modifier.border(1.5.dp, photoBorderColor, CircleShape)
-                } else {
-                    Modifier
-                }
-            )
-            .clip(CircleShape)
-            .background(if (hasPhoto || showPlaceholderIcon) AppColors.AvatarBackground else backgroundColor)
-            .then(
-                if (onClick != null) {
-                    Modifier.clickable(
-                        interactionSource = interactionSource,
-                        indication = rememberRipple(),
-                        onClick = onClick
-                    )
-                } else {
-                    Modifier
-                }
-            ),
+        modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        if (hasPhoto) {
-            AsyncImage(
-                model = photoUri,
-                contentDescription = "Contact photo",
+        Box(
+            modifier = Modifier
+                .size(avatarSize)
+                .then(
+                    if (hasPhoto) {
+                        Modifier.border(1.5.dp, photoBorderColor, CircleShape)
+                    } else {
+                        Modifier
+                    }
+                )
+                .clip(CircleShape)
+                .background(if (hasPhoto || showPlaceholderIcon) AppColors.AvatarBackground else backgroundColor)
+                .then(
+                    if (onClick != null) {
+                        Modifier.clickable(
+                            interactionSource = interactionSource,
+                            indication = rememberRipple(),
+                            onClick = onClick
+                        )
+                    } else {
+                        Modifier
+                    }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (hasPhoto) {
+                AsyncImage(
+                    model = photoUri,
+                    contentDescription = "Contact photo",
+                    modifier = Modifier
+                        .size(avatarSize)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else if (showPlaceholderIcon) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Default avatar",
+                    modifier = Modifier.size(avatarSize * 0.5f),
+                    tint = AppColors.AvatarIconColor
+                )
+            } else {
+                Text(
+                    text = initials,
+                    fontSize = dimens.fontSizeMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = textColor
+                )
+            }
+        }
+        
+        // Device contacts badge - sağ alt köşe
+        if (isInDeviceContacts) {
+            val badgeSize = avatarSize * 0.4f
+            Image(
+                painter = painterResource(id = R.drawable.ic_device_contacts),
+                contentDescription = "In device contacts",
                 modifier = Modifier
-                    .size(avatarSize)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-        } else if (showPlaceholderIcon) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Default avatar",
-                modifier = Modifier.size(avatarSize * 0.5f),
-                tint = AppColors.AvatarIconColor
-            )
-        } else {
-            Text(
-                text = initials,
-                fontSize = dimens.fontSizeMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = textColor
+                    .size(badgeSize)
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 2.dp, y = 2.dp)
+                    .clip(CircleShape)
+                    .background(Color.White)
             )
         }
     }

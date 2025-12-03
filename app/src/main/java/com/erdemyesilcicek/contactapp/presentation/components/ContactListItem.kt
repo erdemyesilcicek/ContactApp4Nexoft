@@ -54,7 +54,8 @@ fun ContactListItem(
                 photoUri = contact.photoUri?.toString(),
                 initials = contact.initials,
                 size = dimens.contactItemAvatarSize,
-                showPlaceholderIcon = false
+                showPlaceholderIcon = false,
+                isInDeviceContacts = contact.isInDeviceContacts
             )
             
             Spacer(modifier = Modifier.width(dimens.paddingMedium))

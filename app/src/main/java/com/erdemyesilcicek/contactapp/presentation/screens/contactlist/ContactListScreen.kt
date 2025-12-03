@@ -1,5 +1,6 @@
 package com.erdemyesilcicek.contactapp.presentation.screens.contactlist
 
+import android.Manifest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,8 +53,11 @@ import com.erdemyesilcicek.contactapp.presentation.components.EditContactBottomS
 import com.erdemyesilcicek.contactapp.presentation.components.EmptyContactsState
 import com.erdemyesilcicek.contactapp.presentation.components.SearchBar
 import com.erdemyesilcicek.contactapp.util.AppDimens
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun ContactListScreen(
     onContactSaved: () -> Unit,
@@ -64,6 +68,23 @@ fun ContactListScreen(
     val state by viewModel.state.collectAsState()
     val dimens = AppDimens.current
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    // READ_CONTACTS izin durumu
+    val contactsPermissionState = rememberPermissionState(Manifest.permission.READ_CONTACTS)
+    
+    // Ekran açıldığında izin iste
+    LaunchedEffect(Unit) {
+        if (!contactsPermissionState.status.isGranted) {
+            contactsPermissionState.launchPermissionRequest()
+        }
+    }
+    
+    // İzin verildiğinde cihaz rehberini kontrol et
+    LaunchedEffect(contactsPermissionState.status.isGranted) {
+        if (contactsPermissionState.status.isGranted) {
+            viewModel.onContactsPermissionGranted()
+        }
+    }
     
     // State for showing add contact bottom sheet
     var showAddContactSheet by remember { mutableStateOf(false) }
@@ -94,6 +115,7 @@ fun ContactListScreen(
             onDismiss = { showAddContactSheet = false },
             onContactSaved = {
                 showAddContactSheet = false
+                viewModel.refreshContacts()
                 onContactSaved()
             }
         )
@@ -116,6 +138,7 @@ fun ContactListScreen(
             onDeleted = {
                 showContactDetailSheet = false
                 selectedContactId = null
+                viewModel.refreshContacts()
             }
         )
     }
@@ -131,6 +154,7 @@ fun ContactListScreen(
             onContactUpdated = {
                 showEditContactSheet = false
                 editContactId = null
+                viewModel.refreshContacts()
                 showLocalUpdateSuccess = true
             }
         )
