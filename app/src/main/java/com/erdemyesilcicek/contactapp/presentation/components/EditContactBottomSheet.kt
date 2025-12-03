@@ -71,6 +71,7 @@ fun EditContactBottomSheet(
     onDismiss: () -> Unit,
     onContactUpdated: () -> Unit,
     viewModel: EditContactViewModel = hiltViewModel<EditContactViewModel, EditContactViewModel.Factory>(
+        key = contactId,
         creationCallback = { factory -> factory.create(contactId) }
     )
 ) {

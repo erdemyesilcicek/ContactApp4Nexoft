@@ -82,6 +82,7 @@ fun ContactDetailBottomSheet(
     onNavigateToEdit: (String) -> Unit,
     onDeleted: () -> Unit,
     viewModel: ContactDetailViewModel = hiltViewModel<ContactDetailViewModel, ContactDetailViewModel.Factory>(
+        key = contactId,
         creationCallback = { factory -> factory.create(contactId) }
     )
 ) {
